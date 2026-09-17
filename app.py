@@ -62,7 +62,7 @@ def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Hospital@123",
+        password="MY_MYSQL_PASSWORD",",
         database="smart_hospital",
         autocommit=True
     )
