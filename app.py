@@ -1,30 +1,18 @@
-import sys
 import os
-
-# =========================================================
-# Project Root Path
-# =========================================================
-
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        ".."
-    )
-)
-
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
-
-
-# =========================================================
-# Imports
-# =========================================================
+import pickle
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import mysql.connector
 
-from machine_learning.predict import predict_disease
+from predict import predict_disease
+
+
+# =========================================================
+# Project Root
+# =========================================================
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
 # =========================================================
@@ -60,10 +48,19 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 def get_db_connection():
 
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
+        host=os.environ.get("MYSQL_HOST", "localhost"),
+        user=os.environ.get("MYSQL_USER", "root"),
         password=os.environ.get("MYSQL_PASSWORD"),
-        database="smart_hospital",
+        database=os.environ.get(
+            "MYSQL_DATABASE",
+            "smart_hospital"
+        ),
+        port=int(
+            os.environ.get(
+                "MYSQL_PORT",
+                3306
+            )
+        ),
         autocommit=True
     )
 
@@ -92,6 +89,7 @@ def get_cursor(dictionary=True):
 
             try:
                 db.close()
+
             except:
                 pass
 
@@ -102,10 +100,7 @@ def get_cursor(dictionary=True):
 # Home
 # =========================================================
 
-@app.route(
-    "/",
-    methods=["GET"]
-)
+@app.route("/", methods=["GET"])
 def home():
 
     return (
@@ -145,7 +140,7 @@ def serve_frontend(filename):
 )
 def register_patient():
 
-    data = request.json
+    data = request.json or {}
 
     name = data.get("name")
     age = data.get("age")
@@ -231,7 +226,7 @@ def register_patient():
 )
 def login_patient():
 
-    data = request.json
+    data = request.json or {}
 
     email = data.get("email")
     password = data.get("password")
@@ -433,7 +428,7 @@ def get_doctors():
 )
 def book_appointment():
 
-    data = request.json
+    data = request.json or {}
 
     patient_id = data.get(
         "patient_id"
@@ -766,7 +761,7 @@ def download_report(filename):
 )
 def predict():
 
-    data = request.json
+    data = request.json or {}
 
     patient_id = data.get(
         "patient_id"
@@ -962,7 +957,6 @@ def get_analytics():
 
         db, cursor = get_cursor()
 
-
         # Total Patients
 
         cursor.execute(
@@ -1103,6 +1097,15 @@ def get_analytics():
 
 if __name__ == "__main__":
 
+    port = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
+
     app.run(
-        debug=True
+        host="0.0.0.0",
+        port=port,
+        debug=False
     )
