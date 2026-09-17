@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Medical Reports</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+
+    <h1>AI Smart Hospital Assistant</h1>
+
+    <nav>
+
+        <a href="index.html">Home</a>
+
+        <a href="patient-dashboard.html">Dashboard</a>
+
+        <a href="doctor.html">Doctors</a>
+
+        <a href="analytics.html">Analytics</a>
+
+    </nav>
+
+</header>
+
+
+<!-- Upload Report -->
+
+<div class="login-box">
+
+    <h2>Upload Medical Report</h2>
+
+    <input
+        type="text"
+        id="reportName"
+        placeholder="Report Name"
+    >
+
+    <input
+        type="file"
+        id="reportFile"
+        accept=".pdf,.jpg,.jpeg,.png"
+    >
+
+    <button onclick="uploadReport()">
+        Upload Report
+    </button>
+
+</div>
+
+
+<!-- My Reports -->
+
+<div class="dashboard">
+
+    <div
+        class="card"
+        style="width: 90%; max-width: 900px;"
+    >
+
+        <h3>My Medical Reports</h3>
+
+        <div id="reportsContainer">
+
+            <p>Loading reports...</p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const patientId =
+    localStorage.getItem("patient_id");
+
+
+// =========================================================
+// Upload Report
+// =========================================================
+
+async function uploadReport() {
+
+    if (!patientId) {
+
+        alert("Please login first.");
+
+        window.location.href =
+            "patient-login.html";
+
+        return;
+    }
+
+
+    const reportName =
+        document.getElementById(
+            "reportName"
+        ).value;
+
+    const reportFile =
+        document.getElementById(
+            "reportFile"
+        ).files[0];
+
+
+    if (!reportName) {
+
+        alert("Please enter report name.");
+
+        return;
+    }
+
+
+    if (!reportFile) {
+
+        alert("Please select a file.");
+
+        return;
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "patient_id",
+        patientId
+    );
+
+
+    formData.append(
+        "report_name",
+        reportName
+    );
+
+
+    formData.append(
+        "file",
+        reportFile
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:5000/api/upload-report",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (response.ok) {
+
+            alert(
+                result.message
+            );
+
+
+            document.getElementById(
+                "reportName"
+            ).value = "";
+
+
+            document.getElementById(
+                "reportFile"
+            ).value = "";
+
+
+            loadReports();
+
+        }
+
+        else {
+
+            alert(
+                result.message
+            );
+
+        }
+
+    }
+
+    catch (error) {
+
+        alert(
+            "Unable to connect to backend."
+        );
+
+        console.error(error);
+
+    }
+
+}
+
+
+
+// =========================================================
+// Load Reports
+// =========================================================
+
+async function loadReports() {
+
+    const container =
+        document.getElementById(
+            "reportsContainer"
+        );
+
+
+    if (!patientId) {
+
+        container.innerHTML =
+            "<p>Please login first.</p>";
+
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:5000/api/reports/"
+                + patientId
+            );
+
+
+        const reports =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            container.innerHTML =
+                "<p>Unable to load reports.</p>";
+
+            return;
+        }
+
+
+        if (reports.length === 0) {
+
+            container.innerHTML =
+                "<p>No medical reports uploaded yet.</p>";
+
+            return;
+        }
+
+
+        container.innerHTML = "";
+
+
+        reports.forEach(
+            function(report) {
+
+                const reportCard =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                reportCard.style.border =
+                    "1px solid #ddd";
+
+
+                reportCard.style.padding =
+                    "15px";
+
+
+                reportCard.style.marginBottom =
+                    "15px";
+
+
+                reportCard.style.borderRadius =
+                    "8px";
+
+
+                reportCard.style.background =
+                    "#f8f9fa";
+
+
+                reportCard.innerHTML = `
+
+                    <p>
+                        <strong>Report ID:</strong>
+                        ${report.report_id}
+                    </p>
+
+                    <p>
+                        <strong>Report Name:</strong>
+                        ${report.report_name}
+                    </p>
+
+                    <p>
+                        <strong>File:</strong>
+                        ${report.file_name}
+                    </p>
+
+                    <p>
+                        <strong>Uploaded:</strong>
+                        ${new Date(
+                            report.upload_date
+                        ).toLocaleString()}
+                    </p>
+
+                `;
+
+
+                container.appendChild(
+                    reportCard
+                );
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        container.innerHTML =
+            "<p>Unable to connect to backend.</p>";
+
+        console.error(error);
+
+    }
+
+}
+
+
+// Load reports when page opens
+
+loadReports();
+
+</script>
+
+</body>
+
+</html>

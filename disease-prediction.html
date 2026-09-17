@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+```
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Disease Prediction</title>
+
+<link rel="stylesheet" href="style.css">
+```
+
+</head>
+
+<body>
+
+<header>
+
+```
+<h1>AI Disease Prediction</h1>
+```
+
+</header>
+
+<div class="login-box">
+
+```
+<h2>Enter Health Details</h2>
+
+
+<input
+    type="number"
+    id="age"
+    placeholder="Enter Age"
+    min="1"
+    max="120"
+>
+
+
+<select id="gender">
+
+    <option value="">Select Gender</option>
+
+    <option value="1">Male</option>
+
+    <option value="0">Female</option>
+
+    <option value="1">Other</option>
+
+</select>
+
+
+<input
+    type="number"
+    id="blood_pressure"
+    placeholder="Blood Pressure"
+>
+
+
+<input
+    type="number"
+    id="sugar"
+    placeholder="Sugar Level"
+>
+
+
+<input
+    type="number"
+    id="heart_rate"
+    placeholder="Heart Rate"
+>
+
+
+<input
+    type="number"
+    id="symptom_score"
+    placeholder="Symptom Score (1-6)"
+    min="1"
+    max="6"
+>
+
+
+<button onclick="predictDisease()">
+    Predict Disease
+</button>
+
+
+<div
+    id="result"
+    style="
+        margin-top:25px;
+        padding:15px;
+        display:none;
+        border-radius:8px;
+        background:#f0f8ff;
+    "
+>
+
+    <h3>Prediction Result</h3>
+
+    <p id="diseaseResult"></p>
+
+    <p id="riskResult"></p>
+
+    <p id="recordResult"></p>
+
+    <p
+        style="
+            font-size:13px;
+            color:#666;
+        "
+    >
+        This prediction is for educational/demo purposes
+        and is not a medical diagnosis.
+    </p>
+
+</div>
+```
+
+</div>
+
+<script>
+
+async function predictDisease() {
+
+    // Get logged-in patient ID
+
+    const patientId =
+        localStorage.getItem("patient_id");
+
+
+    if (!patientId) {
+
+        alert("Please login first.");
+
+        window.location.href =
+            "patient-login.html";
+
+        return;
+
+    }
+
+
+    // Get input values
+
+    const age =
+        document.getElementById("age").value;
+
+    const gender =
+        document.getElementById("gender").value;
+
+    const bloodPressure =
+        document.getElementById("blood_pressure").value;
+
+    const sugar =
+        document.getElementById("sugar").value;
+
+    const heartRate =
+        document.getElementById("heart_rate").value;
+
+    const symptomScore =
+        document.getElementById("symptom_score").value;
+
+
+    // Validate inputs
+
+    if (
+        !age ||
+        !gender ||
+        !bloodPressure ||
+        !sugar ||
+        !heartRate ||
+        !symptomScore
+    ) {
+
+        alert("Please fill all health details.");
+
+        return;
+
+    }
+
+
+    const resultBox =
+        document.getElementById("result");
+
+    resultBox.style.display = "block";
+
+
+    document.getElementById(
+        "diseaseResult"
+    ).innerText = "Predicting...";
+
+
+    document.getElementById(
+        "riskResult"
+    ).innerText = "";
+
+
+    document.getElementById(
+        "recordResult"
+    ).innerText = "";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:5000/api/predict",
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body: JSON.stringify({
+
+                        patient_id:
+                            patientId,
+
+                        age:
+                            age,
+
+                        gender:
+                            gender,
+
+                        blood_pressure:
+                            bloodPressure,
+
+                        sugar:
+                            sugar,
+
+                        heart_rate:
+                            heartRate,
+
+                        symptom_score:
+                            symptomScore
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (response.ok) {
+
+            document.getElementById(
+                "diseaseResult"
+            ).innerHTML =
+                "<strong>Predicted Disease:</strong> "
+                + data.predicted_disease;
+
+
+            document.getElementById(
+                "riskResult"
+            ).innerHTML =
+                "<strong>Risk Percentage:</strong> "
+                + data.risk_percentage
+                + "%";
+
+
+            document.getElementById(
+                "recordResult"
+            ).innerHTML =
+                "<strong>Medical Record ID:</strong> "
+                + data.record_id;
+
+
+            alert(
+                "Prediction generated and saved successfully!"
+            );
+
+        }
+
+        else {
+
+            document.getElementById(
+                "diseaseResult"
+            ).innerText =
+                data.message ||
+                "Prediction failed.";
+
+        }
+
+    }
+
+    catch (error) {
+
+        document.getElementById(
+            "diseaseResult"
+        ).innerText =
+            "Unable to connect to backend.";
+
+        console.error(error);
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>

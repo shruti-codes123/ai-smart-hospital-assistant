@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <h1>AI Smart Hospital Assistant</h1>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="doctor.html">Doctors</a>
+        <a href="medical-reports.html">Reports</a>
+        <a href="analytics.html">Analytics</a>
+    </nav>
+</header>
+
+
+<div class="dashboard">
+
+    <!-- Welcome -->
+    <div class="card">
+        <h3>Welcome</h3>
+        <p id="patientName">Loading...</p>
+    </div>
+
+
+    <!-- Patient Profile -->
+    <div class="card">
+
+        <h3>My Profile</h3>
+
+        <p id="patientEmail">Loading...</p>
+        <p id="patientAge"></p>
+        <p id="patientGender"></p>
+        <p id="patientBloodGroup"></p>
+        <p id="patientPhone"></p>
+        <p id="patientAddress"></p>
+
+    </div>
+
+
+    <!-- Medical Reports -->
+    <div class="card">
+
+        <h3>Medical Reports</h3>
+
+        <p>
+            View and upload your medical reports.
+        </p>
+
+        <a href="medical-reports.html">
+            <button>View Reports</button>
+        </a>
+
+    </div>
+
+
+    <!-- Disease Prediction -->
+    <div class="card">
+
+        <h3>Disease Prediction</h3>
+
+        <p>
+            Get AI-based disease risk prediction.
+        </p>
+
+        <a href="disease-prediction.html">
+            <button>Check Now</button>
+        </a>
+
+    </div>
+
+
+    <!-- Appointments -->
+    <div class="card">
+
+        <h3>Book Appointment</h3>
+
+        <p>
+            Book an appointment with a doctor.
+        </p>
+
+        <a href="doctor.html">
+            <button>Book Appointment</button>
+        </a>
+
+    </div>
+
+
+    <!-- AI Chatbot -->
+    <div class="card">
+
+        <h3>AI Healthcare Chatbot</h3>
+
+        <p>
+            Ask healthcare-related questions.
+        </p>
+
+        <a href="ai-chatbot.html">
+            <button>Open Chatbot</button>
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- My Appointments Section -->
+
+<div class="dashboard">
+
+    <div class="card" style="width: 90%; max-width: 900px;">
+
+        <h3>My Appointments</h3>
+
+        <div id="appointmentsContainer">
+
+            <p>Loading appointments...</p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Prediction History Section -->
+
+<div class="dashboard">
+
+    <div class="card" style="width: 90%; max-width: 900px;">
+
+        <h3>Prediction History</h3>
+
+        <p>
+            Your previous AI disease risk predictions.
+        </p>
+
+        <div id="predictionHistoryContainer">
+
+            <p>Loading prediction history...</p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+// =========================================================
+// Load Patient Profile
+// =========================================================
+
+async function loadPatientProfile() {
+
+    const patientId =
+        localStorage.getItem("patient_id");
+
+
+    if (!patientId) {
+
+        alert("Please login first.");
+
+        window.location.href =
+            "patient-login.html";
+
+        return;
+
+    }
+
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/patient/"
+            + patientId
+        );
+
+
+        const patient =
+            await response.json();
+
+
+        if (response.ok) {
+
+            document.getElementById(
+                "patientName"
+            ).innerText =
+                "Hello, " + patient.name + "!";
+
+
+            document.getElementById(
+                "patientEmail"
+            ).innerText =
+                "Email: " + patient.email;
+
+
+            document.getElementById(
+                "patientAge"
+            ).innerText =
+                "Age: " + patient.age;
+
+
+            document.getElementById(
+                "patientGender"
+            ).innerText =
+                "Gender: " + patient.gender;
+
+
+            document.getElementById(
+                "patientBloodGroup"
+            ).innerText =
+                "Blood Group: " + patient.blood_group;
+
+
+            document.getElementById(
+                "patientPhone"
+            ).innerText =
+                "Phone: " + patient.phone;
+
+
+            document.getElementById(
+                "patientAddress"
+            ).innerText =
+                "Address: " + patient.address;
+
+        }
+
+        else {
+
+            alert(patient.message);
+
+        }
+
+    }
+
+    catch (error) {
+
+        alert(
+            "Unable to connect to backend."
+        );
+
+        console.error(error);
+
+    }
+
+}
+
+
+
+// =========================================================
+// Load Patient Appointments
+// =========================================================
+
+async function loadAppointments() {
+
+    const patientId =
+        localStorage.getItem("patient_id");
+
+
+    const container =
+        document.getElementById(
+            "appointmentsContainer"
+        );
+
+
+    if (!patientId) {
+
+        container.innerHTML =
+            "<p>Please login first.</p>";
+
+        return;
+
+    }
+
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/appointments/"
+            + patientId
+        );
+
+
+        const appointments =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            container.innerHTML =
+                "<p>Unable to load appointments.</p>";
+
+            return;
+
+        }
+
+
+        if (appointments.length === 0) {
+
+            container.innerHTML =
+                "<p>No appointments found.</p>";
+
+            return;
+
+        }
+
+
+        container.innerHTML = "";
+
+
+        appointments.forEach(
+            function(appointment) {
+
+
+                const appointmentCard =
+                    document.createElement("div");
+
+
+                appointmentCard.style.border =
+                    "1px solid #ddd";
+
+                appointmentCard.style.padding =
+                    "15px";
+
+                appointmentCard.style.marginBottom =
+                    "15px";
+
+                appointmentCard.style.borderRadius =
+                    "8px";
+
+                appointmentCard.style.background =
+                    "#f8f9fa";
+
+
+                const appointmentDate =
+                    new Date(
+                        appointment.appointment_date
+                    );
+
+
+                appointmentCard.innerHTML = `
+
+                    <p>
+                        <strong>Appointment ID:</strong>
+                        ${appointment.appointment_id}
+                    </p>
+
+                    <p>
+                        <strong>Doctor:</strong>
+                        ${appointment.doctor_name}
+                    </p>
+
+                    <p>
+                        <strong>Specialization:</strong>
+                        ${appointment.specialization}
+                    </p>
+
+                    <p>
+                        <strong>Date & Time:</strong>
+                        ${appointmentDate.toLocaleString()}
+                    </p>
+
+                    <p>
+                        <strong>Reason:</strong>
+                        ${appointment.reason || "Not specified"}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        ${appointment.status}
+                    </p>
+
+                `;
+
+
+                container.appendChild(
+                    appointmentCard
+                );
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        container.innerHTML =
+            "<p>Unable to connect to backend.</p>";
+
+        console.error(error);
+
+    }
+
+}
+
+
+
+// =========================================================
+// Load Prediction History
+// =========================================================
+
+async function loadPredictionHistory() {
+
+    const patientId =
+        localStorage.getItem("patient_id");
+
+
+    const container =
+        document.getElementById(
+            "predictionHistoryContainer"
+        );
+
+
+    if (!patientId) {
+
+        container.innerHTML =
+            "<p>Please login first.</p>";
+
+        return;
+
+    }
+
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/medical-records/"
+            + patientId
+        );
+
+
+        const records =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            container.innerHTML =
+                "<p>Unable to load prediction history.</p>";
+
+            return;
+
+        }
+
+
+        if (records.length === 0) {
+
+            container.innerHTML =
+                "<p>No prediction history found.</p>";
+
+            return;
+
+        }
+
+
+        container.innerHTML = "";
+
+
+        records.forEach(
+            function(record) {
+
+
+                const recordCard =
+                    document.createElement("div");
+
+
+                recordCard.style.border =
+                    "1px solid #ddd";
+
+                recordCard.style.padding =
+                    "15px";
+
+                recordCard.style.marginBottom =
+                    "15px";
+
+                recordCard.style.borderRadius =
+                    "8px";
+
+                recordCard.style.background =
+                    "#f8f9fa";
+
+
+                const recordDate =
+                    new Date(
+                        record.record_date
+                    );
+
+
+                recordCard.innerHTML = `
+
+                    <p>
+                        <strong>Record ID:</strong>
+                        ${record.record_id}
+                    </p>
+
+                    <p>
+                        <strong>Predicted Disease:</strong>
+                        ${record.disease}
+                    </p>
+
+                    <p>
+                        <strong>Risk Percentage:</strong>
+                        ${record.risk_percentage}%
+                    </p>
+
+                    <p>
+                        <strong>Input Details:</strong>
+                        ${record.symptoms}
+                    </p>
+
+                    <p>
+                        <strong>Prediction Date:</strong>
+                        ${recordDate.toLocaleString()}
+                    </p>
+
+                `;
+
+
+                container.appendChild(
+                    recordCard
+                );
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        container.innerHTML =
+            "<p>Unable to connect to backend.</p>";
+
+        console.error(error);
+
+    }
+
+}
+
+
+
+// =========================================================
+// Run Functions
+// =========================================================
+
+loadPatientProfile();
+
+loadAppointments();
+
+loadPredictionHistory();
+
+
+</script>
+
+
+</body>
+</html>

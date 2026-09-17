@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <h2>Patient Registration</h2>
+
+    <input type="text" id="name" placeholder="Full Name">
+
+    <input type="number" id="age" placeholder="Age">
+
+    <select id="gender">
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+    </select>
+
+    <select id="blood_group">
+        <option value="">Select Blood Group</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+    </select>
+
+    <input type="text" id="phone" placeholder="Phone">
+
+    <input type="email" id="email" placeholder="Email">
+
+    <input type="password" id="password" placeholder="Password">
+
+    <input type="password" id="confirm_password" placeholder="Confirm Password">
+
+    <input type="text" id="address" placeholder="Address">
+
+    <button onclick="registerPatient()">Register</button>
+
+    <p>
+        Already Registered?
+        <a href="patient-login.html">Login Here</a>
+    </p>
+
+</div>
+
+<script>
+async function registerPatient() {
+
+    const name = document.getElementById("name").value;
+    const age = document.getElementById("age").value;
+    const gender = document.getElementById("gender").value;
+    const blood_group = document.getElementById("blood_group").value;
+    const phone = document.getElementById("phone").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const confirm_password = document.getElementById("confirm_password").value;
+    const address = document.getElementById("address").value;
+
+    if (!name || !email || !password) {
+        alert("Please fill Name, Email and Password");
+        return;
+    }
+
+    if (password !== confirm_password) {
+        alert("Passwords do not match");
+        return;
+    }
+
+    try {
+
+        const response = await fetch("http://127.0.0.1:5000/api/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: name,
+                age: age,
+                gender: gender,
+                blood_group: blood_group,
+                phone: phone,
+                email: email,
+                password: password,
+                address: address
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message);
+            window.location.href = "patient-login.html";
+        } else {
+            alert(result.message);
+        }
+
+    } catch (error) {
+        alert("Backend server is not running!");
+        console.error(error);
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Doctors</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h1>Our Doctors</h1>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="patient-dashboard.html">Dashboard</a>
+        <a href="medical-reports.html">Reports</a>
+        <a href="analytics.html">Analytics</a>
+    </nav>
+
+</header>
+
+
+<div class="dashboard" id="doctorContainer">
+
+    <p>Loading doctors...</p>
+
+</div>
+
+
+<!-- Appointment Form -->
+
+<div class="login-box" id="appointmentBox" style="display: none;">
+
+    <h2>Book Appointment</h2>
+
+    <p id="selectedDoctor"></p>
+
+    <input
+        type="datetime-local"
+        id="appointmentDate"
+    >
+
+    <input
+        type="text"
+        id="reason"
+        placeholder="Reason for Visit"
+    >
+
+    <button onclick="submitAppointment()">
+        Confirm Appointment
+    </button>
+
+    <button
+        onclick="closeAppointmentForm()"
+        style="background: #6c757d;"
+    >
+        Cancel
+    </button>
+
+</div>
+
+
+<script>
+
+
+let selectedDoctorId = null;
+
+
+async function loadDoctors() {
+
+    const container =
+        document.getElementById("doctorContainer");
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/doctors"
+        );
+
+        const doctors = await response.json();
+
+
+        if (!response.ok) {
+
+            container.innerHTML =
+                "<p>Unable to load doctors.</p>";
+
+            return;
+        }
+
+
+        container.innerHTML = "";
+
+
+        doctors.forEach(function(doctor) {
+
+            const card =
+                document.createElement("div");
+
+            card.className = "card";
+
+
+            card.innerHTML = `
+
+                <h3>${doctor.doctor_name}</h3>
+
+                <p>
+                    <strong>Specialization:</strong>
+                    ${doctor.specialization}
+                </p>
+
+                <p>
+                    <strong>Experience:</strong>
+                    ${doctor.experience} Years
+                </p>
+
+                <p>
+                    <strong>Phone:</strong>
+                    ${doctor.phone}
+                </p>
+
+                <button
+                    onclick="openAppointmentForm(
+                        ${doctor.doctor_id},
+                        '${doctor.doctor_name}'
+                    )"
+                >
+                    Book Appointment
+                </button>
+
+            `;
+
+
+            container.appendChild(card);
+
+        });
+
+    }
+
+    catch (error) {
+
+        container.innerHTML =
+            "<p>Unable to connect to backend.</p>";
+
+        console.error(error);
+
+    }
+
+}
+
+
+function openAppointmentForm(
+    doctorId,
+    doctorName
+) {
+
+    const patientId =
+        localStorage.getItem("patient_id");
+
+
+    if (!patientId) {
+
+        alert("Please login first.");
+
+        window.location.href =
+            "patient-login.html";
+
+        return;
+
+    }
+
+
+    selectedDoctorId = doctorId;
+
+
+    document.getElementById(
+        "selectedDoctor"
+    ).innerText =
+        "Selected Doctor: " + doctorName;
+
+
+    document.getElementById(
+        "appointmentBox"
+    ).style.display = "block";
+
+
+    document.getElementById(
+        "appointmentBox"
+    ).scrollIntoView({
+        behavior: "smooth"
+    });
+
+}
+
+
+function closeAppointmentForm() {
+
+    document.getElementById(
+        "appointmentBox"
+    ).style.display = "none";
+
+}
+
+
+async function submitAppointment() {
+
+    const patientId =
+        localStorage.getItem("patient_id");
+
+
+    const appointmentDate =
+        document.getElementById(
+            "appointmentDate"
+        ).value;
+
+
+    const reason =
+        document.getElementById(
+            "reason"
+        ).value;
+
+
+    if (!selectedDoctorId) {
+
+        alert("Please select a doctor.");
+
+        return;
+
+    }
+
+
+    if (!appointmentDate) {
+
+        alert("Please select appointment date and time.");
+
+        return;
+
+    }
+
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/appointments",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    patient_id: patientId,
+
+                    doctor_id: selectedDoctorId,
+
+                    appointment_date: appointmentDate,
+
+                    reason: reason
+
+                })
+
+            }
+        );
+
+
+        const result =
+            await response.json();
+
+
+        if (response.ok) {
+
+            alert(
+                result.message +
+                "\nAppointment ID: " +
+                result.appointment_id
+            );
+
+
+            document.getElementById(
+                "appointmentDate"
+            ).value = "";
+
+
+            document.getElementById(
+                "reason"
+            ).value = "";
+
+
+            closeAppointmentForm();
+
+        }
+
+        else {
+
+            alert(result.message);
+
+        }
+
+    }
+
+    catch (error) {
+
+        alert(
+            "Unable to connect to backend."
+        );
+
+        console.error(error);
+
+    }
+
+}
+
+
+loadDoctors();
+
+
+</script>
+
+
+</body>
+
+</html>

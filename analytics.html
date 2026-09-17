@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Healthcare Analytics Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <style>
+
+        .analytics-container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 40px auto;
+        }
+
+        .analytics-title {
+            text-align: center;
+            color: #0b5ed7;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(200px, 1fr)
+            );
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.12);
+        }
+
+        .stat-card h3 {
+            color: #0b5ed7;
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .analysis-card {
+            background: white;
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.12);
+        }
+
+        .analysis-card h2 {
+            color: #0b5ed7;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .disease-row {
+            margin-bottom: 20px;
+        }
+
+        .disease-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        .bar-background {
+            width: 100%;
+            height: 25px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            background: #0b5ed7;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h1>Healthcare Analytics Dashboard</h1>
+
+</header>
+
+
+
+<div class="analytics-container">
+
+    <h2 class="analytics-title">
+        Hospital Statistics
+    </h2>
+
+
+    <!-- Statistics -->
+
+    <div class="stats">
+
+
+        <div class="stat-card">
+
+            <h3>👥 Total Patients</h3>
+
+            <div
+                class="stat-number"
+                id="totalPatients"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+
+
+        <div class="stat-card">
+
+            <h3>👨‍⚕️ Total Doctors</h3>
+
+            <div
+                class="stat-number"
+                id="totalDoctors"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+
+
+        <div class="stat-card">
+
+            <h3>📄 Medical Reports</h3>
+
+            <div
+                class="stat-number"
+                id="totalReports"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+
+
+        <div class="stat-card">
+
+            <h3>📅 Appointments</h3>
+
+            <div
+                class="stat-number"
+                id="totalAppointments"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+
+
+        <div class="stat-card">
+
+            <h3>🤖 AI Predictions</h3>
+
+            <div
+                class="stat-number"
+                id="totalPredictions"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- Disease Analysis -->
+
+    <div class="analysis-card">
+
+        <h2>
+            🩺 Disease Prediction Analysis
+        </h2>
+
+
+        <div id="diseaseAnalysis">
+
+            <p class="loading">
+                Loading disease analysis...
+            </p>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+
+async function loadAnalytics() {
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/analytics"
+        );
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                "Unable to load analytics"
+            );
+
+        }
+
+
+        // -----------------------------
+        // Statistics
+        // -----------------------------
+
+        document.getElementById(
+            "totalPatients"
+        ).innerText =
+            data.total_patients;
+
+
+        document.getElementById(
+            "totalDoctors"
+        ).innerText =
+            data.total_doctors;
+
+
+        document.getElementById(
+            "totalReports"
+        ).innerText =
+            data.total_reports;
+
+
+        document.getElementById(
+            "totalAppointments"
+        ).innerText =
+            data.total_appointments;
+
+
+        document.getElementById(
+            "totalPredictions"
+        ).innerText =
+            data.total_predictions;
+
+
+
+        // -----------------------------
+        // Disease Analysis
+        // -----------------------------
+
+        const container =
+            document.getElementById(
+                "diseaseAnalysis"
+            );
+
+
+        container.innerHTML = "";
+
+
+        if (
+            !data.disease_analysis ||
+            data.disease_analysis.length === 0
+        ) {
+
+            container.innerHTML =
+                `<p class="loading">
+                    No disease prediction data available.
+                </p>`;
+
+            return;
+
+        }
+
+
+        // Find maximum count
+        // for bar calculation
+
+        const maxCount = Math.max(
+            ...data.disease_analysis.map(
+                item => item.count
+            )
+        );
+
+
+        data.disease_analysis.forEach(
+            item => {
+
+                const percentage =
+                    (item.count / maxCount) * 100;
+
+
+                const row =
+                    document.createElement("div");
+
+
+                row.className =
+                    "disease-row";
+
+
+                row.innerHTML = `
+
+                    <div class="disease-info">
+
+                        <span>
+                            ${item.disease}
+                        </span>
+
+                        <span>
+                            ${item.count}
+                        </span>
+
+                    </div>
+
+
+                    <div class="bar-background">
+
+                        <div
+                            class="bar"
+                            style="width: ${percentage}%"
+                        ></div>
+
+                    </div>
+
+                `;
+
+
+                container.appendChild(row);
+
+            }
+        );
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Analytics Error:",
+            error
+        );
+
+
+        document.getElementById(
+            "diseaseAnalysis"
+        ).innerHTML = `
+
+            <p class="error">
+                Unable to connect to backend.
+                Please make sure Flask server is running.
+            </p>
+
+        `;
+
+    }
+
+}
+
+
+// Load analytics when page opens
+
+loadAnalytics();
+
+
+</script>
+
+
+</body>
+
+</html>
