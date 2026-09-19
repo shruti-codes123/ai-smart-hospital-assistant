@@ -43,24 +43,40 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================================================
 # MySQL Connection
+# Aiven Cloud MySQL - SSL REQUIRED
 # =========================================================
 
 def get_db_connection():
 
     return mysql.connector.connect(
-        host=os.environ.get("MYSQL_HOST", "localhost"),
-        user=os.environ.get("MYSQL_USER", "root"),
-        password=os.environ.get("MYSQL_PASSWORD"),
+        host=os.environ.get(
+            "MYSQL_HOST",
+            "localhost"
+        ),
+
+        user=os.environ.get(
+            "MYSQL_USER",
+            "root"
+        ),
+
+        password=os.environ.get(
+            "MYSQL_PASSWORD"
+        ),
+
         database=os.environ.get(
             "MYSQL_DATABASE",
             "smart_hospital"
         ),
+
         port=int(
             os.environ.get(
                 "MYSQL_PORT",
                 3306
             )
         ),
+
+        ssl_disabled=False,
+
         autocommit=True
     )
 
@@ -90,7 +106,7 @@ def get_cursor(dictionary=True):
             try:
                 db.close()
 
-            except:
+            except Exception:
                 pass
 
         raise e
@@ -100,22 +116,32 @@ def get_cursor(dictionary=True):
 # Home
 # =========================================================
 
-@app.route("/", methods=["GET"])
+@app.route(
+    "/",
+    methods=["GET"]
+)
 def home():
-    # Serve the main frontend page directly from the project root.
-    # All HTML/CSS/JS files are stored in the repository root.
-    return send_from_directory(PROJECT_ROOT, "index.html")
+
+    return send_from_directory(
+        PROJECT_ROOT,
+        "index.html"
+    )
 
 
 # =========================================================
 # Serve Frontend Files
 # =========================================================
 
-@app.route("/<path:filename>", methods=["GET"])
+@app.route(
+    "/<path:filename>",
+    methods=["GET"]
+)
 def serve_frontend(filename):
-    # The project does not use a separate frontend/ folder.
-    # Static frontend files are stored directly in PROJECT_ROOT.
-    return send_from_directory(PROJECT_ROOT, filename)
+
+    return send_from_directory(
+        PROJECT_ROOT,
+        filename
+    )
 
 
 # =========================================================
@@ -945,8 +971,6 @@ def get_analytics():
 
         db, cursor = get_cursor()
 
-        # Total Patients
-
         cursor.execute(
             """
             SELECT COUNT(*) AS total_patients
@@ -958,9 +982,6 @@ def get_analytics():
             cursor.fetchone()
             ["total_patients"]
         )
-
-
-        # Total Doctors
 
         cursor.execute(
             """
@@ -974,9 +995,6 @@ def get_analytics():
             ["total_doctors"]
         )
 
-
-        # Total Reports
-
         cursor.execute(
             """
             SELECT COUNT(*) AS total_reports
@@ -988,9 +1006,6 @@ def get_analytics():
             cursor.fetchone()
             ["total_reports"]
         )
-
-
-        # Total Appointments
 
         cursor.execute(
             """
@@ -1004,9 +1019,6 @@ def get_analytics():
             ["total_appointments"]
         )
 
-
-        # Total Predictions
-
         cursor.execute(
             """
             SELECT COUNT(*) AS total_predictions
@@ -1018,9 +1030,6 @@ def get_analytics():
             cursor.fetchone()
             ["total_predictions"]
         )
-
-
-        # Disease Analysis
 
         cursor.execute(
             """
@@ -1034,7 +1043,6 @@ def get_analytics():
         )
 
         disease_data = cursor.fetchall()
-
 
         return jsonify({
 
