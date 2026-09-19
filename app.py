@@ -102,32 +102,20 @@ def get_cursor(dictionary=True):
 
 @app.route("/", methods=["GET"])
 def home():
-
-    return (
-        "AI Smart Hospital Assistant Backend + "
-        "MySQL + ML Connected Successfully!"
-    )
+    # Serve the main frontend page directly from the project root.
+    # All HTML/CSS/JS files are stored in the repository root.
+    return send_from_directory(PROJECT_ROOT, "index.html")
 
 
 # =========================================================
-# Serve Frontend
+# Serve Frontend Files
 # =========================================================
 
-@app.route(
-    "/frontend/<path:filename>",
-    methods=["GET"]
-)
+@app.route("/<path:filename>", methods=["GET"])
 def serve_frontend(filename):
-
-    frontend_folder = os.path.join(
-        PROJECT_ROOT,
-        "frontend"
-    )
-
-    return send_from_directory(
-        frontend_folder,
-        filename
-    )
+    # The project does not use a separate frontend/ folder.
+    # Static frontend files are stored directly in PROJECT_ROOT.
+    return send_from_directory(PROJECT_ROOT, filename)
 
 
 # =========================================================
